@@ -1,0 +1,3 @@
+[submodule "app/templates/Phoenix"]
+	path = app/templates/Phoenix
+	url = https://github.com/connectivedx/Phoenix.git

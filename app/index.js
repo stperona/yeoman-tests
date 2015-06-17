@@ -133,42 +133,65 @@ module.exports = generators.Base.extend({
   },
 
   writing: {
+    phoenix: function () {
+      if (this.phoenix) {
+        this.directory(this.templatePath('Phoenix/Assets'),
+                            this.destinationPath('assets'));
+      }
+    },
+
     html: function () {
+      var dest = (this.phoenix ? this.destinationPath('assets/src/templates/index.html') : this.destinationPath('index.html'));
       this.fs.copyTpl(
         this.templatePath('index.html'),
-        this.destinationPath('index.html'),
+        dest,
         {
           appname: this.appname,
         }
       );
     },
 
-    misc: function () {
+    angular: function () {
       mkdirp('app');
+    },
+
+    package: function() {
+      this.fs.copyTpl(
+        this.templatePath('_package.json'),
+        this.destinationPath('package.json'),
+        { appname: this.appname }
+      );
+
+      this.fs.copyTpl(
+        this.templatePath('_bower.json'),
+        this.destinationPath('bower.json'),
+        {
+          appname: this.appname,
+          animateModule: this.animateModule,
+          ariaModule: this.ariaModule,
+          cookiesModule: this.cookiesModule,
+          messagesModule: this.messagesModule,
+          resourceModule: this.resourceModule,
+          routeModule: this.routeModule,
+          sanitizeModule: this.sanitizeModule,
+          touchModule: this.touchModule
+        }
+      );
+    },
+    
+    gulp: function () {
+      this.fs.copyTpl(
+        this.templatePath('gulpfile.js'),
+        this.destinationPath('gulpfile.js'),
+        { includePhoenix: this.phoenix }
+      );
     }
   },
 
   install: {
-    
-    // Install Phoenix if selected.
-    installPhoenix: function() {
-      if (this.phoenix) {
-        this.log(chalk.cyan('Downloading Phoenix.'));
-        request
-          .get('https://github.com/connectivedx/Phoenix/archive/1.2.1.tar.gz')
-          .pipe(zlib.Unzip())
-          .pipe(tar.Extract({path: this.destinationRoot(), strip: 1 })
-                    .on('end', function() {
-                      // Install NodeJS dependencies for the Phoenix build.
-                      this.log(chalk.cyan('Installing Phoenix NPM dependencies.'));
-                      var phoenixDep = this.spawnCommand('npm', ['install'], {cwd: this.destinationRoot() + '/Assets/src', stdio: 'ignore'});
-                      phoenixDep.on('close', function(code) {
-                        this.log(chalk.green('Phoenix dependencies installed.'));
-                      }.bind(this));
-                    }.bind(this)));
-      }
-    }
-
     // Install selected Angular modules.
+    packaged: function() {
+      this.installDependencies();
+    }
   }
 });
